@@ -23,7 +23,6 @@
             touch-action: manipulation;
         }
         
-        /* Sidebar */
         .sidebar {
             background-color: #111111;
             border-right: 1px solid #222;
@@ -36,7 +35,6 @@
             z-index: 200;
         }
         
-        /* Desktop Layout */
         @media (min-width: 769px) {
             body { display: flex; }
             .sidebar {
@@ -46,11 +44,8 @@
             }
         }
         
-        /* Mobile Layout */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
+            body { flex-direction: column; }
             .sidebar {
                 position: fixed;
                 top: 0;
@@ -66,7 +61,6 @@
             }
         }
         
-        /* Hamburger Button */
         .hamburger {
             position: fixed;
             top: 16px;
@@ -100,7 +94,6 @@
             border-radius: 8px;
             font-size: 15px;
             white-space: nowrap;
-            transition: all 0.2s;
             min-height: 52px;
             display: flex;
             align-items: center;
@@ -123,7 +116,6 @@
             justify-content: center;
         }
         
-        /* Main Viewer */
         .viewer-container {
             flex: 1;
             position: relative;
@@ -133,11 +125,10 @@
         model-viewer {
             width: 100%;
             height: 100%;
+            display: block; /* Important for mobile */
             background-color: #0a0a0a;
-            touch-action: none;
         }
         
-        /* Loading spinner */
         .loading {
             position: absolute;
             top: 50%;
@@ -158,40 +149,35 @@
     </style>
 </head>
 <body>
-    <!-- Hamburger Menu Button (Mobile Only) -->
     <button class="hamburger" id="hamburger">☰</button>
 
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="tab active" data-src="TWR-17-full.glb">TWR17</div>
         <div class="tab" data-src="TWR-16-full.glb">TWR16</div>
         <div class="tab" data-src="TWR-16-Front-Wing-Master.glb">TWR16 Front Wing</div>
 
-        
-        <!-- Background Toggle -->
         <div class="bg-toggle" id="bgToggle">Background: Black</div>
     </div>
 
-    <!-- 3D Viewer -->
     <div class="viewer-container">
         <div class="loading" id="loader"></div>
         
         <model-viewer
             id="modelViewer"
             src="TWR-17-full.glb"
-            alt=""
+            alt="TWR17"
             camera-controls="true"
             auto-rotate="true"
-            auto-rotate-delay="2000"
-            rotation-per-second="20deg"
-            shadow-intensity="1.2"
-            exposure="0.9"
-            environment-intensity="0.85"
+            auto-rotate-delay="3000"
+            rotation-per-second="15deg"
+            shadow-intensity="0.8"          <!-- Reduced for mobile -->
+            exposure="0.85"
+            environment-intensity="0.7"
             loading="eager"
-            ar="true"
-            ar-modes="webxr scene-viewer quick-look"
-            camera-orbit="45deg 60deg 15m"
-            field-of-view="30deg">
+            model-cache-size="1"            <!-- Lower memory usage -->
+            camera-orbit="45deg 55deg auto"
+            field-of-view="35deg"
+            poster="poster-image.jpg">      <!-- Optional: add a screenshot here -->
         </model-viewer>
     </div>
 
@@ -205,19 +191,27 @@
         
         let isBlackBackground = true;
 
-        // Show spinner
         loader.style.display = 'block';
 
-        function handleModelLoad() {
+        // Improved load handler with error logging
+        modelViewer.addEventListener('load', () => {
             loader.style.display = 'none';
-        }
+            console.log('✅ Model loaded successfully on mobile');
+        });
 
-        modelViewer.addEventListener('load', handleModelLoad);
+        modelViewer.addEventListener('error', (e) => {
+            loader.style.display = 'none';
+            console.error('❌ Model load error:', e.detail || e);
+            alert('Failed to load model. Check console for details (F12 or Safari Web Inspector).');
+        });
 
         // Safety timeout
         setTimeout(() => {
-            if (loader.style.display !== 'none') loader.style.display = 'none';
-        }, 15000);
+            if (loader.style.display !== 'none') {
+                loader.style.display = 'none';
+                console.warn('Model load timed out');
+            }
+        }, 20000);
 
         // Tab switching
         tabs.forEach(tab => {
@@ -230,38 +224,23 @@
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                 }
-                
-                // Close sidebar after selection on mobile
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('open');
-                }
+                if (window.innerWidth <= 768) sidebar.classList.remove('open');
             });
         });
 
-        // Background Toggle
+        // Background toggle
         bgToggle.addEventListener('click', () => {
             isBlackBackground = !isBlackBackground;
-            
-            if (isBlackBackground) {
-                modelViewer.style.backgroundColor = '#0a0a0a';
-                bgToggle.textContent = 'Background: Black';
-            } else {
-                modelViewer.style.backgroundColor = '#f8f8f8';
-                bgToggle.textContent = 'Background: White';
-            }
-            
-            // Close sidebar on mobile after toggle
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
-            }
+            modelViewer.style.backgroundColor = isBlackBackground ? '#0a0a0a' : '#f8f8f8';
+            bgToggle.textContent = isBlackBackground ? 'Background: Black' : 'Background: White';
+            if (window.innerWidth <= 768) sidebar.classList.remove('open');
         });
 
-        // Hamburger Menu Toggle
+        // Hamburger menu
         hamburger.addEventListener('click', () => {
             sidebar.classList.toggle('open');
         });
 
-        // Close sidebar when clicking outside on mobile
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768 && 
                 !sidebar.contains(e.target) && 
@@ -270,7 +249,7 @@
             }
         });
 
-        // Fullscreen (Double tap works well on mobile)
+        // Double-tap for fullscreen
         document.addEventListener('dblclick', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
