@@ -131,7 +131,7 @@
     <button class="hamburger" id="hamburger">☰</button>
 
     <div class="sidebar" id="sidebar">
-       <div class="tab active" data-src="TWR-17-full.glb">TWR17</div>
+     <div class="tab active" data-src="TWR-17-full.glb">TWR17</div>
         <div class="tab" data-src="TWR-16-full.glb">TWR16</div>
         <div class="tab" data-src="TWR-16-Front-Wing-Master.glb">TWR16 Front Wing</div>
 
@@ -190,7 +190,7 @@
         
         let isBlackBackground = true;
         let currentMode = 'single';
-        let syncTimeout = null;
+        let isSyncing = false;   // Prevent feedback loop
 
         loader.style.display = 'block';
 
@@ -202,29 +202,29 @@
         model1.addEventListener('load', handleLoad);
         model2.addEventListener('load', handleLoad);
 
-        // Improved synchronized camera movement (prevents snapping)
+        // Synchronized camera movement - both models hold position until user changes them
         function syncCamera(source, target) {
-            if (currentMode !== 'compare') return;
+            if (currentMode !== 'compare' || isSyncing) return;
             
-            // Clear any pending sync to avoid feedback loops
-            if (syncTimeout) clearTimeout(syncTimeout);
+            isSyncing = true;
             
-            syncTimeout = setTimeout(() => {
-                try {
-                    target.cameraOrbit = source.cameraOrbit;
-                    target.cameraTarget = source.cameraTarget;
-                    target.fieldOfView = source.fieldOfView;
-                } catch (err) {
-                    console.warn("Sync error:", err);
-                }
-            }, 10); // Small delay for smoothness
+            try {
+                target.cameraOrbit = source.cameraOrbit;
+                target.cameraTarget = source.cameraTarget;
+                target.fieldOfView = source.fieldOfView;
+            } catch (err) {
+                console.warn("Camera sync error:", err);
+            }
+            
+            // Release lock after a tiny delay
+            setTimeout(() => { isSyncing = false; }, 16);
         }
 
-        // Sync when user interacts with either model
+        // Listen for camera changes on both models
         model1.addEventListener('camera-change', () => syncCamera(model1, model2));
         model2.addEventListener('camera-change', () => syncCamera(model2, model1));
 
-        // Tab switching
+        // Tab switching logic
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const mode = tab.dataset.mode;
