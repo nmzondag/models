@@ -8,11 +8,7 @@
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             background-color: #0a0a0a;
@@ -37,52 +33,38 @@
         
         @media (min-width: 769px) {
             body { display: flex; }
-            .sidebar {
-                width: 240px;
-                min-width: 240px;
-                position: relative;
-            }
+            .sidebar { width: 240px; min-width: 240px; position: relative; }
         }
         
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar {
                 position: fixed;
-                top: 0;
-                left: 0;
-                width: 280px;
-                height: 100%;
+                top: 0; left: 0;
+                width: 280px; height: 100%;
                 transform: translateX(-100%);
                 padding-top: 70px;
                 box-shadow: 2px 0 10px rgba(0,0,0,0.5);
             }
-            .sidebar.open {
-                transform: translateX(0);
-            }
+            .sidebar.open { transform: translateX(0); }
         }
         
         .hamburger {
             position: fixed;
-            top: 16px;
-            left: 16px;
+            top: 16px; left: 16px;
             z-index: 300;
             background: #1a1a1a;
             border: none;
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             border-radius: 10px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #ffffff;
+            align-items: center; justify-content: center;
+            color: #fff;
             font-size: 28px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
-        @media (min-width: 769px) {
-            .hamburger { display: none; }
-        }
+        @media (min-width: 769px) { .hamburger { display: none; } }
         
         .tab, .bg-toggle {
             padding: 14px 16px;
@@ -99,43 +81,44 @@
             align-items: center;
         }
         
-        .tab:hover, .bg-toggle:hover {
-            background-color: #252525;
-            color: #ffffff;
-        }
+        .tab:hover, .bg-toggle:hover { background-color: #252525; color: #ffffff; }
+        .tab.active { background-color: #333333; color: white; font-weight: 500; }
         
-        .tab.active {
-            background-color: #333333;
-            color: white;
-            font-weight: 500;
-        }
+        .bg-toggle { margin-top: auto; font-weight: 500; justify-content: center; }
         
-        .bg-toggle {
-            margin-top: auto;
-            font-weight: 500;
-            justify-content: center;
-        }
-        
+        /* Viewer Area */
         .viewer-container {
             flex: 1;
             position: relative;
-            min-height: 0;
+            display: flex;
+            overflow: hidden;
         }
         
         model-viewer {
-            width: 100%;
+            flex: 1;
             height: 100%;
-            display: block; /* Important for mobile */
             background-color: #0a0a0a;
+            display: block;
+        }
+        
+        /* Compare Mode - Two models side by side */
+        .compare-mode .viewer-container {
+            flex-direction: row;
+        }
+        
+        .compare-mode model-viewer {
+            border-right: 1px solid #222;
+        }
+        
+        .compare-mode model-viewer:last-child {
+            border-right: none;
         }
         
         .loading {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             border: 5px solid rgba(255,255,255,0.15);
             border-top: 5px solid #ffffff;
             border-radius: 50%;
@@ -143,9 +126,7 @@
             z-index: 100;
         }
         
-        @keyframes spin {
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -156,90 +137,133 @@
         <div class="tab" data-src="TWR-16-full.glb">TWR16</div>
         <div class="tab" data-src="TWR-16-Front-Wing-Master.glb">TWR16 Front Wing</div>
 
+        
+        <!-- New Compare Tab -->
+        <div class="tab" data-mode="compare" 
+             data-src1="TWR-16-full.glb" 
+             data-src2="TWR-17-full.glb">
+            Compare: TWR-16 + TWR-17
+        </div>
+        
         <div class="bg-toggle" id="bgToggle">Background: Black</div>
     </div>
 
-    <div class="viewer-container">
+    <div class="viewer-container" id="viewerContainer">
         <div class="loading" id="loader"></div>
         
-        <model-viewer
-            id="modelViewer"
+        <!-- Single Model Viewer -->
+        <model-viewer id="model1"
             src="TWR-17-full.glb"
-            alt="TWR17"
+            alt=""
             camera-controls="true"
             auto-rotate="true"
             auto-rotate-delay="3000"
             rotation-per-second="15deg"
-            shadow-intensity="0.8"          <!-- Reduced for mobile -->
+            shadow-intensity="0.8"
             exposure="0.85"
             environment-intensity="0.7"
             loading="eager"
-            model-cache-size="1"            <!-- Lower memory usage -->
+            camera-orbit="45deg 55deg auto"
+            field-of-view="35deg">
+        </model-viewer>
+        
+        <!-- Second Model Viewer (hidden by default) -->
+        <model-viewer id="model2"
+            src="TWR-16-full.glb"
+            alt=""
+            camera-controls="true"
+            auto-rotate="false"
+            shadow-intensity="0.8"
+            exposure="0.85"
+            environment-intensity="0.7"
+            loading="eager"
             camera-orbit="45deg 55deg auto"
             field-of-view="35deg"
-            poster="poster-image.jpg">      <!-- Optional: add a screenshot here -->
+            style="display: none;">
         </model-viewer>
     </div>
 
     <script>
-        const modelViewer = document.getElementById('modelViewer');
+        const model1 = document.getElementById('model1');
+        const model2 = document.getElementById('model2');
         const loader = document.getElementById('loader');
         const tabs = document.querySelectorAll('.tab');
         const bgToggle = document.getElementById('bgToggle');
         const hamburger = document.getElementById('hamburger');
         const sidebar = document.getElementById('sidebar');
+        const viewerContainer = document.getElementById('viewerContainer');
         
         let isBlackBackground = true;
+        let currentMode = 'single';
 
         loader.style.display = 'block';
 
-        // Improved load handler with error logging
-        modelViewer.addEventListener('load', () => {
+        // Load handler
+        function handleLoad(e) {
             loader.style.display = 'none';
-            console.log('✅ Model loaded successfully on mobile');
-        });
+            console.log('Model loaded:', e.target.id);
+        }
 
-        modelViewer.addEventListener('error', (e) => {
-            loader.style.display = 'none';
-            console.error('❌ Model load error:', e.detail || e);
-            alert('Failed to load model. Check console for details (F12 or Safari Web Inspector).');
-        });
+        model1.addEventListener('load', handleLoad);
+        model2.addEventListener('load', handleLoad);
 
-        // Safety timeout
-        setTimeout(() => {
-            if (loader.style.display !== 'none') {
-                loader.style.display = 'none';
-                console.warn('Model load timed out');
+        // Synchronize camera between two models in compare mode
+        function syncCameras(source, target) {
+            if (currentMode === 'compare') {
+                target.cameraOrbit = source.cameraOrbit;
+                target.cameraTarget = source.cameraTarget;
+                target.fieldOfView = source.fieldOfView;
             }
-        }, 20000);
+        }
 
-        // Tab switching
+        model1.addEventListener('camera-change', () => syncCameras(model1, model2));
+        model2.addEventListener('camera-change', () => syncCameras(model2, model1));
+
+        // Tab Click Handler
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                const newSrc = tab.getAttribute('data-src');
-                if (newSrc && newSrc !== modelViewer.src) {
-                    loader.style.display = 'block';
-                    modelViewer.src = newSrc;
+                const mode = tab.dataset.mode;
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                loader.style.display = 'block';
+
+                if (mode === 'single') {
+                    currentMode = 'single';
+                    viewerContainer.classList.remove('compare-mode');
+                    model2.style.display = 'none';
                     
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
+                    model1.src = tab.dataset.src;
+                    model1.autoRotate = true;
+                    
+                } else if (mode === 'compare') {
+                    currentMode = 'compare';
+                    viewerContainer.classList.add('compare-mode');
+                    model2.style.display = 'block';
+                    
+                    model1.src = tab.dataset.src1;
+                    model2.src = tab.dataset.src2;
+                    
+                    model1.autoRotate = false;
+                    model2.autoRotate = false;
                 }
+                
                 if (window.innerWidth <= 768) sidebar.classList.remove('open');
             });
         });
 
-        // Background toggle
+        // Background Toggle
         bgToggle.addEventListener('click', () => {
             isBlackBackground = !isBlackBackground;
-            modelViewer.style.backgroundColor = isBlackBackground ? '#0a0a0a' : '#f8f8f8';
+            const color = isBlackBackground ? '#0a0a0a' : '#f8f8f8';
+            model1.style.backgroundColor = color;
+            model2.style.backgroundColor = color;
             bgToggle.textContent = isBlackBackground ? 'Background: Black' : 'Background: White';
             if (window.innerWidth <= 768) sidebar.classList.remove('open');
         });
 
-        // Hamburger menu
-        hamburger.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
+        // Hamburger
+        hamburger.addEventListener('click', () => sidebar.classList.toggle('open'));
 
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768 && 
@@ -249,7 +273,7 @@
             }
         });
 
-        // Double-tap for fullscreen
+        // Double tap fullscreen
         document.addEventListener('dblclick', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
